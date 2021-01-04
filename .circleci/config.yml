@@ -5,31 +5,7 @@ defaults: &defaults
     - image: circleci/python:3.8.0
   working_directory: ~/project
 
-prepare_venv: &prepare_venv
-  run:
-    name: Create venv
-    command: |
-      python3 -m venv venv
-      source venv/bin/activate
-      pip install --upgrade pip
-
-prepare_tox: &prepare_tox
-  run:
-    name: Install tox
-    command: |
-      sudo pip install --upgrade pip
-      pip install --user tox
-
-fetch_data: &fetch_data
-  run:
-    name: Set script permissions and fetch data
-    command: |
-      source venv/bin/activate
-      chmod +x ./scripts/fetch_kaggle_dataset.sh
-      ./scripts/fetch_kaggle_dataset.sh
-
 jobs:
-
   test_regression_model_py38:
     docker:
       - image: circleci/python:3.8.0
@@ -43,43 +19,6 @@ jobs:
             sudo pip install --upgrade pip
             pip install --user tox
             tox -e py38
-
-  test_ml_api_py38:
-    docker:
-      - image: circleci/python:3.8.1
-    working_directory: ~/project/packages/ml_api
-    steps:
-      - checkout:
-          path: ~/project
-      - run:
-          name: Run API tests with Python 3.8
-          command: |
-            sudo pip install --upgrade pip
-            pip install --user tox
-            tox -e py38
-
-  train_and_upload_regression_model:
-    <<: *defaults
-    steps:
-      - checkout
-      - *prepare_venv
-      - run: 
-          name: Install requirements
-          command: |
-            . venv/bin/activate
-            pip install -r packages/regression_model/requirements.txt
-      - *fetch_data
-      - run: 
-          name: Train model
-          command: |
-            . venv/bin/activate
-            PYTHONPATH=./packages/regression_model python3 packages/regression_model/regression_model/train_pipeline.py
-      - run: 
-          name: Publish model to Gemfury
-          command: |
-            . venv/bin/activate
-            chmod +x ./scripts/publish_model.sh
-            ./scripts/publish_model.sh ./packages/regression_model/
 
 workflows:
   version: 2
