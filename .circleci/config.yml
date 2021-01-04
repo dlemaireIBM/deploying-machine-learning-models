@@ -85,5 +85,5 @@ workflows:
   version: 2
   test-all:
     jobs:
-      - test_regression_model_py38:
+      - test_regression_model_py38
 
